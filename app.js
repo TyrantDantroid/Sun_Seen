@@ -14,7 +14,7 @@ const fallbackTimezones = [
 ];
 
 const state = {
-  view: "day",
+  onlyToday: false,
   selectedDate: startOfDay(new Date()),
   location: { ...presets[0] }
 };
@@ -29,6 +29,7 @@ const els = {
   locationLabel: document.querySelector("#locationLabel"),
   longitudeInput: document.querySelector("#longitudeInput"),
   nextButton: document.querySelector("#nextButton"),
+  onlyTodayButton: document.querySelector("#onlyTodayButton"),
   presetSelect: document.querySelector("#presetSelect"),
   prevButton: document.querySelector("#prevButton"),
   rangeTitle: document.querySelector("#rangeTitle"),
@@ -54,15 +55,8 @@ function init() {
 }
 
 function bindEvents() {
-  document.querySelectorAll("[data-view]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.view = button.dataset.view;
-      persistState();
-      render();
-    });
-  });
-
   els.dateInput.addEventListener("change", () => {
+    state.onlyToday = false;
     state.selectedDate = parseLocalDate(els.dateInput.value);
     persistState();
     render();
@@ -71,6 +65,14 @@ function bindEvents() {
   els.prevButton.addEventListener("click", () => movePeriod(-1));
   els.nextButton.addEventListener("click", () => movePeriod(1));
   els.todayButton.addEventListener("click", () => {
+    state.onlyToday = false;
+    state.selectedDate = startOfDay(new Date());
+    persistState();
+    render();
+  });
+
+  els.onlyTodayButton.addEventListener("click", () => {
+    state.onlyToday = true;
     state.selectedDate = startOfDay(new Date());
     persistState();
     render();
@@ -78,10 +80,13 @@ function bindEvents() {
 
   els.presetSelect.addEventListener("change", () => {
     const preset = els.presetSelect.value === "custom" ? customPreset : presets[Number(els.presetSelect.value)];
-    state.location = { ...preset };
-    syncInputs();
-    persistState();
-    render();
+    fillLocationInputs(preset);
+  });
+
+  [els.latitudeInput, els.longitudeInput].forEach((input) => {
+    input.addEventListener("input", () => {
+      els.presetSelect.value = "custom";
+    });
   });
 
   els.locationForm.addEventListener("submit", (event) => {
@@ -123,18 +128,23 @@ function applyCoordinates() {
   }
 
   state.location = {
-    name: "Custom Location",
+    name: getPendingLocationName(),
     latitude,
     longitude,
     timezone: els.timezoneSelect.value
   };
-  els.presetSelect.value = "custom";
   persistState();
   render();
   els.applyCoordinatesButton.textContent = "Applied";
   window.setTimeout(() => {
-    els.applyCoordinatesButton.textContent = "Apply Coordinates";
+    els.applyCoordinatesButton.textContent = "Apply Change";
   }, 1200);
+}
+
+function getPendingLocationName() {
+  if (els.presetSelect.value === "custom") return "Custom Location";
+  const preset = presets[Number(els.presetSelect.value)];
+  return preset?.name || "Custom Location";
 }
 
 function renderPresetOptions() {
@@ -165,54 +175,46 @@ function syncInputs() {
       preset.timezone === state.location.timezone
   );
   els.presetSelect.value = presetIndex >= 0 ? String(presetIndex) : "custom";
-  els.latitudeInput.value = state.location.latitude.toFixed(4);
-  els.longitudeInput.value = state.location.longitude.toFixed(4);
+  fillLocationInputs(state.location);
+  els.dateInput.value = toInputDate(state.selectedDate);
+}
 
-  if (![...els.timezoneSelect.options].some((option) => option.value === state.location.timezone)) {
+function fillLocationInputs(location) {
+  els.latitudeInput.value = location.latitude.toFixed(4);
+  els.longitudeInput.value = location.longitude.toFixed(4);
+
+  if (![...els.timezoneSelect.options].some((option) => option.value === location.timezone)) {
     const option = document.createElement("option");
-    option.value = state.location.timezone;
-    option.textContent = state.location.timezone;
+    option.value = location.timezone;
+    option.textContent = location.timezone;
     els.timezoneSelect.append(option);
   }
-  els.timezoneSelect.value = state.location.timezone;
-  els.dateInput.value = toInputDate(state.selectedDate);
+  els.timezoneSelect.value = location.timezone;
 }
 
 function render() {
   syncInputs();
-  document.querySelectorAll("[data-view]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === state.view);
-  });
-
   const days = getVisibleDays();
-  const selectedSun = getSunInfo(state.selectedDate, state.location);
+  const selectedSun = getSunInfo(days[0].date, state.location);
+  els.onlyTodayButton.classList.toggle("active", state.onlyToday);
   els.locationLabel.textContent = `${state.location.name} · ${formatCoordinate(state.location.latitude, "N", "S")}, ${formatCoordinate(state.location.longitude, "E", "W")}`;
   els.rangeTitle.textContent = getRangeTitle(days);
   els.summarySunrise.textContent = selectedSun.sunrise;
   els.summarySunset.textContent = selectedSun.sunset;
   els.summaryDaylight.textContent = selectedSun.daylight;
 
-  els.calendarGrid.className = `calendar-grid ${state.view}`;
-  els.calendarGrid.innerHTML = state.view === "month" ? renderWeekdayHeaders() : "";
+  els.calendarGrid.className = `calendar-grid ${state.onlyToday ? "only-today" : "week"}`;
+  els.calendarGrid.innerHTML = "";
   els.calendarGrid.insertAdjacentHTML("beforeend", days.map(renderDayCard).join(""));
-}
-
-function renderWeekdayHeaders() {
-  return `
-    <div class="weekday-row">
-      ${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => `<div class="weekday">${day}</div>`).join("")}
-    </div>
-  `;
 }
 
 function renderDayCard(day) {
   const sun = getSunInfo(day.date, state.location);
-  const isCompact = state.view === "month";
   const isToday = sameDate(day.date, new Date());
   const dateLabel = new Intl.DateTimeFormat("en", { weekday: "short", month: "short", day: "numeric" }).format(day.date);
 
   return `
-    <article class="day-card ${isCompact ? "compact" : ""} ${day.inMonth === false ? "muted" : ""} ${isToday ? "today" : ""}">
+    <article class="day-card ${isToday ? "today" : ""}">
       <div class="day-head">
         <div class="date-number">
           <strong>${day.date.getDate()}</strong>
@@ -236,42 +238,23 @@ function fact(label, value, className = "") {
 }
 
 function getVisibleDays() {
-  if (state.view === "day") {
-    return [{ date: state.selectedDate, inMonth: true }];
+  if (state.onlyToday) {
+    return [{ date: startOfDay(new Date()) }];
   }
 
-  if (state.view === "week") {
-    const start = addDays(state.selectedDate, -state.selectedDate.getDay());
-    return Array.from({ length: 7 }, (_, index) => ({ date: addDays(start, index), inMonth: true }));
-  }
-
-  const monthStart = new Date(state.selectedDate.getFullYear(), state.selectedDate.getMonth(), 1);
-  const gridStart = addDays(monthStart, -monthStart.getDay());
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = addDays(gridStart, index);
-    return { date, inMonth: date.getMonth() === state.selectedDate.getMonth() };
-  });
+  const start = addDays(state.selectedDate, -state.selectedDate.getDay());
+  return Array.from({ length: 7 }, (_, index) => ({ date: addDays(start, index) }));
 }
 
 function getRangeTitle(days) {
   const dateFormatter = new Intl.DateTimeFormat("en", { month: "long", day: "numeric", year: "numeric" });
-  if (state.view === "day") return dateFormatter.format(days[0].date);
-  if (state.view === "week") {
-    return `${dateFormatter.format(days[0].date)} - ${dateFormatter.format(days[days.length - 1].date)}`;
-  }
-  return new Intl.DateTimeFormat("en", { month: "long", year: "numeric" }).format(state.selectedDate);
+  if (state.onlyToday) return dateFormatter.format(days[0].date);
+  return `${dateFormatter.format(days[0].date)} - ${dateFormatter.format(days[days.length - 1].date)}`;
 }
 
 function movePeriod(direction) {
-  if (state.view === "day") state.selectedDate = addDays(state.selectedDate, direction);
-  if (state.view === "week") state.selectedDate = addDays(state.selectedDate, direction * 7);
-  if (state.view === "month") {
-    state.selectedDate = new Date(
-      state.selectedDate.getFullYear(),
-      state.selectedDate.getMonth() + direction,
-      Math.min(state.selectedDate.getDate(), 28)
-    );
-  }
+  state.onlyToday = false;
+  state.selectedDate = addDays(state.selectedDate, direction * 7);
   persistState();
   render();
 }
@@ -377,8 +360,9 @@ function formatCoordinate(value, positive, negative) {
 function hydrateSavedState() {
   const saved = JSON.parse(localStorage.getItem("sun-seen-state") || "null");
   if (!saved) return;
-  state.view = saved.view || state.view;
+  state.onlyToday = Boolean(saved.onlyToday);
   state.selectedDate = saved.selectedDate ? parseLocalDate(saved.selectedDate) : state.selectedDate;
+  if (state.onlyToday) state.selectedDate = startOfDay(new Date());
   state.location = saved.location || state.location;
 }
 
@@ -386,7 +370,7 @@ function persistState() {
   localStorage.setItem(
     "sun-seen-state",
     JSON.stringify({
-      view: state.view,
+      onlyToday: state.onlyToday,
       selectedDate: toInputDate(state.selectedDate),
       location: state.location
     })

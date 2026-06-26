@@ -123,7 +123,7 @@ h1 {
 .ghost-button,
 .primary-button,
 .icon-button,
-.segmented button {
+.only-today-button {
   border: 1px solid rgba(32, 34, 41, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.82);
@@ -195,32 +195,14 @@ h1 {
 
 .view-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: flex-end;
   margin-top: 18px;
 }
 
-.segmented {
-  display: inline-grid;
-  grid-template-columns: repeat(3, 1fr);
-  min-width: 260px;
-  border: 1px solid rgba(32, 34, 41, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.64);
-  padding: 4px;
-}
-
-.segmented button {
-  min-height: 38px;
-  border: 0;
-  background: transparent;
-}
-
-.segmented button.active {
-  background: var(--ink);
-  color: #fff;
-  box-shadow: 0 7px 18px rgba(32, 34, 41, 0.18);
+.date-stack {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
 }
 
 .date-controls {
@@ -242,6 +224,18 @@ h1 {
   min-width: 44px;
   min-height: 44px;
   padding: 0 12px;
+}
+
+.only-today-button {
+  min-height: 38px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0 14px;
+}
+
+.only-today-button.active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #fff;
 }
 
 .summary-band {
@@ -307,27 +301,12 @@ h1 {
   gap: 12px;
 }
 
-.calendar-grid.day {
-  grid-template-columns: minmax(0, 760px);
-}
-
 .calendar-grid.week {
   grid-template-columns: repeat(7, minmax(124px, 1fr));
 }
 
-.calendar-grid.month {
-  grid-template-columns: repeat(7, minmax(112px, 1fr));
-}
-
-.weekday-row {
-  display: contents;
-}
-
-.weekday {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 900;
-  text-transform: uppercase;
+.calendar-grid.only-today {
+  grid-template-columns: minmax(0, 760px);
 }
 
 .day-card {
@@ -339,15 +318,6 @@ h1 {
   background: var(--panel);
   padding: 15px;
   box-shadow: 0 14px 35px rgba(32, 34, 41, 0.07);
-}
-
-.day-card.compact {
-  min-height: 170px;
-  padding: 12px;
-}
-
-.day-card.muted {
-  opacity: 0.45;
 }
 
 .day-card.today {
@@ -410,15 +380,6 @@ h1 {
   font-size: 0.96rem;
 }
 
-.day-card.compact .sun-facts {
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-.day-card.compact .fact strong {
-  font-size: 0.88rem;
-}
-
 @media (max-width: 1040px) {
   .controls-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -432,13 +393,12 @@ h1 {
     flex-direction: column;
   }
 
-  .calendar-grid.week,
-  .calendar-grid.month {
+  .calendar-grid.week {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .weekday-row {
-    display: none;
+  .calendar-grid.only-today {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -469,24 +429,19 @@ h1 {
     flex-direction: column;
   }
 
-  .segmented {
-    width: 100%;
-    min-width: 0;
-  }
-
   .date-controls {
     display: grid;
     grid-template-columns: 44px 1fr 76px 44px;
   }
 
   .date-controls input,
-  .icon-button {
+  .icon-button,
+  .only-today-button {
     width: 100%;
   }
 
-  .calendar-grid.day,
   .calendar-grid.week,
-  .calendar-grid.month {
+  .calendar-grid.only-today {
     grid-template-columns: 1fr;
   }
 }

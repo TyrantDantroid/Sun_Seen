@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Sun Seen app icon">
+  <rect width="512" height="512" rx="96" fill="#f6f7f3"/>
+  <path d="M58 330c60-44 116-62 170-55 52 7 88 37 138 38 34 1 63-10 88-31v172H58Z" fill="#4c8f72"/>
+  <path d="M83 342c58-36 107-48 149-38 47 11 78 44 129 45 36 1 67-12 100-39v49c-35 26-69 38-101 37-55-2-88-36-133-46-40-9-87 4-144 41Z" fill="#25324a" opacity=".18"/>
+  <circle cx="267" cy="212" r="104" fill="#f6b544"/>
+  <circle cx="231" cy="177" r="28" fill="#fff8bd" opacity=".78"/>
+  <path d="M267 64v54M267 306v54M415 212h54M65 212h54M372 107l38-38M124 355l38-38M410 355l-38-38M124 69l38 38" stroke="#d97836" stroke-width="24" stroke-linecap="round"/>
+</svg>

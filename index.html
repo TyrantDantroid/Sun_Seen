@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5b84b" />
+    <meta name="description" content="A local sun calendar for sunrise, sunset, solar noon, daylight, and night hours." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Sun Seen</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-band" aria-label="Sun calendar controls">
+        <div class="hero-art" aria-hidden="true">
+          <div class="sun-disc"></div>
+          <div class="horizon-line"></div>
+        </div>
+
+        <div class="topbar">
+          <div>
+            <p class="eyebrow">Sun Seen</p>
+            <h1>Solar Calendar</h1>
+          </div>
+          <button class="install-button hidden" id="installButton" type="button">Install</button>
+        </div>
+
+        <form class="controls-grid" id="locationForm">
+          <label class="field">
+            <span>Location</span>
+            <select id="presetSelect"></select>
+          </label>
+          <label class="field">
+            <span>Latitude</span>
+            <input id="latitudeInput" inputmode="decimal" type="number" min="-90" max="90" step="0.0001" required />
+          </label>
+          <label class="field">
+            <span>Longitude</span>
+            <input id="longitudeInput" inputmode="decimal" type="number" min="-180" max="180" step="0.0001" required />
+          </label>
+          <label class="field">
+            <span>Timezone</span>
+            <select id="timezoneSelect"></select>
+          </label>
+          <button class="primary-button" id="applyCoordinatesButton" type="submit">Apply Coordinates</button>
+        </form>
+
+        <div class="view-toolbar" aria-label="Calendar view controls">
+          <div class="segmented" role="tablist" aria-label="View mode">
+            <button class="active" data-view="day" type="button">Day</button>
+            <button data-view="week" type="button">Week</button>
+            <button data-view="month" type="button">Month</button>
+          </div>
+
+          <div class="date-controls">
+            <button class="icon-button" id="prevButton" type="button" aria-label="Previous period">‹</button>
+            <input id="dateInput" type="date" />
+            <button class="icon-button" id="todayButton" type="button" aria-label="Today">Today</button>
+            <button class="icon-button" id="nextButton" type="button" aria-label="Next period">›</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-band" aria-label="Selected day summary">
+        <div class="summary-copy">
+          <p id="locationLabel"></p>
+          <h2 id="rangeTitle"></h2>
+        </div>
+        <div class="summary-stats">
+          <div>
+            <span>Sunrise</span>
+            <strong id="summarySunrise"></strong>
+          </div>
+          <div>
+            <span>Sunset</span>
+            <strong id="summarySunset"></strong>
+          </div>
+          <div>
+            <span>Daylight</span>
+            <strong id="summaryDaylight"></strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="calendar-band" aria-live="polite">
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
